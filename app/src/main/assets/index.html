@@ -1,0 +1,1539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>小光 V3</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{
+font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+background:#0B1020;color:#fff;
+display:flex;flex-direction:column;
+transition:background .4s,color .4s;
+}
+#app{display:flex;flex-direction:column;height:100%;position:relative;z-index:2}
+#pageHost{flex:1 1 auto;position:relative;overflow:hidden}
+.page{position:absolute;left:0;top:0;right:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:6px 16px 90px;display:none}
+.page.on{display:block}
+.page::-webkit-scrollbar{display:none}
+.card{border-radius:20px;padding:16px;margin-bottom:12px}
+h2{font-size:20px;font-weight:800;margin:6px 0 12px}
+h3{font-size:14px;font-weight:700;opacity:.85;margin:14px 0 8px}
+.btn{border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;width:100%;font-family:inherit}
+.ghost{background:rgba(128,128,128,.18);color:inherit}
+.row{display:flex;align-items:center;gap:10px}
+input,textarea{border:none;outline:none;border-radius:12px;padding:12px;font-size:14px;font-family:inherit;width:100%;background:rgba(128,128,128,.16);color:inherit}
+textarea{resize:none;height:76px}
+.tabbar{flex:0 0 auto;display:flex;height:64px;padding-bottom:env(safe-area-inset-bottom)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;opacity:.5;cursor:pointer;transition:opacity .2s}
+.tab .ti{font-size:20px;line-height:1}
+.tab.on{opacity:1;font-weight:700}
+</style>
+<style>
+/* ========== 主题 1：iOS 玻璃风 ========== */
+body[data-theme="glass"]{
+background:linear-gradient(160deg,#0B1020 0%,#152046 50%,#0B1020 100%);
+color:#fff;
+}
+body[data-theme="glass"] .card{
+background:rgba(255,255,255,.09);
+backdrop-filter:blur(20px) saturate(180%);
+-webkit-backdrop-filter:blur(20px) saturate(180%);
+border:1px solid rgba(255,255,255,.14);
+box-shadow:0 8px 32px rgba(0,0,0,.28);
+}
+body[data-theme="glass"] .btn{background:linear-gradient(135deg,#3B82F6,#8B5CF6);color:#fff}
+body[data-theme="glass"] .ghost{background:rgba(255,255,255,.12);color:#fff}
+body[data-theme="glass"] .tabbar{
+background:rgba(15,20,40,.62);
+backdrop-filter:blur(24px) saturate(180%);
+-webkit-backdrop-filter:blur(24px) saturate(180%);
+border-top:1px solid rgba(255,255,255,.1);
+}
+body[data-theme="glass"] .tab.on{color:#7CB3FF}
+
+/* ========== 主题 2：简约黑 ========== */
+body[data-theme="dark"]{background:#000;color:#EDEDED}
+body[data-theme="dark"] .card{background:#111;border:1px solid #1F1F1F;border-radius:14px}
+body[data-theme="dark"] .btn{background:#EDEDED;color:#000}
+body[data-theme="dark"] .ghost{background:#1A1A1A;color:#EDEDED}
+body[data-theme="dark"] .tabbar{background:#0A0A0A;border-top:1px solid #1E1E1E}
+body[data-theme="dark"] .tab.on{color:#fff}
+body[data-theme="dark"] input,body[data-theme="dark"] textarea{background:#1A1A1A}
+
+/* ========== 主题 3：动漫风（真·卡通） ========== */
+body[data-theme="anime"]{
+background:linear-gradient(170deg,#FDEFF6 0%,#E7E9FF 45%,#DFF6FF 100%);
+color:#4A3A5C;
+}
+body[data-theme="anime"] .card{
+background:rgba(255,255,255,.78);
+border:2.5px solid #fff;
+border-radius:24px;
+box-shadow:0 6px 0 rgba(180,160,220,.28),0 10px 24px rgba(160,140,220,.18);
+}
+body[data-theme="anime"] .btn{
+background:linear-gradient(135deg,#FF9EC4,#A78BFA);
+color:#fff;border-radius:16px;box-shadow:0 4px 0 #C99BE8;
+}
+body[data-theme="anime"] .ghost{background:rgba(255,255,255,.9);color:#8B6BB1;border:2px solid #E9D8FF}
+body[data-theme="anime"] .tabbar{
+background:rgba(255,255,255,.92);
+border-top:3px solid #FFD8EC;
+}
+body[data-theme="anime"] .tab.on{color:#FF7BB0}
+body[data-theme="anime"] input,body[data-theme="anime"] textarea{background:#fff;color:#4A3A5C;border:2px solid #EFE2FF}
+body[data-theme="anime"] h2{color:#7C5AA6}
+
+/* ---- 动漫风：飘动云朵 + 星星贴纸 ---- */
+#animeBg{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .5s;overflow:hidden}
+body[data-theme="anime"] #animeBg{opacity:1}
+.cloud{position:absolute;font-size:44px;opacity:.85;animation:drift linear infinite}
+@keyframes drift{from{transform:translateX(-90px)}to{transform:translateX(110vw)}}
+.star{position:absolute;font-size:18px;animation:twinkle 3s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:.25;transform:scale(.8) rotate(0)}50%{opacity:1;transform:scale(1.15) rotate(18deg)}}
+.char{position:absolute;font-size:52px;animation:bob 3.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-14px) rotate(4deg)}}
+</style><style>
+.wxBig{font-size:52px;font-weight:900;line-height:1;letter-spacing:-2px}
+.wxRow{display:flex;align-items:center;justify-content:space-between}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.mini{border-radius:14px;padding:10px;background:rgba(128,128,128,.12);text-align:center}
+.mini .k{font-size:10.5px;opacity:.6}
+.mini .v{font-size:15px;font-weight:800;margin-top:4px}
+.loc{font-size:11.5px;opacity:.75;margin-top:10px;line-height:1.7;word-break:break-all}
+.loc b{opacity:1;font-weight:700}
+.hourScr{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
+.hourScr::-webkit-scrollbar{display:none}
+.hourItem{flex:0 0 auto;width:62px;border-radius:14px;padding:10px 6px;background:rgba(128,128,128,.12);text-align:center}
+.hourItem .hh{font-size:10.5px;opacity:.65}
+.hourItem .ii{font-size:20px;margin:5px 0}
+.hourItem .tt{font-size:14px;font-weight:800}
+.hourItem .pp{font-size:10px;opacity:.7;margin-top:3px;color:#5AA9FF}
+.tip{border-radius:16px;padding:14px;margin-top:12px;border-left:4px solid #3B82F6;background:rgba(59,130,246,.1)}
+.tip .t1{font-size:15px;font-weight:800}
+.tip .t2{font-size:12px;opacity:.78;margin-top:6px;line-height:1.6}
+.trend{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
+.trend::-webkit-scrollbar{display:none}
+.trendItem{flex:0 0 auto;width:66px;border-radius:12px;padding:9px 5px;background:rgba(128,128,128,.1);text-align:center}
+.trendItem .dt{font-size:10px;opacity:.6}
+.trendItem .di{font-size:18px;margin:4px 0}
+.trendItem .dmax{font-size:12.5px;font-weight:800}
+.trendItem .dmin{font-size:10.5px;opacity:.6}
+.trendItem .dp{font-size:9.5px;color:#5AA9FF;margin-top:2px}
+.noteitem{border-radius:14px;padding:12px;margin-bottom:8px;background:rgba(128,128,128,.12);position:relative}
+.noteitem .nt{font-weight:800;font-size:14px;padding-right:26px}
+.noteitem .nc{font-size:12.5px;opacity:.8;margin-top:5px;line-height:1.55;white-space:pre-wrap}
+.noteitem .nd{font-size:10.5px;opacity:.5;margin-top:6px}
+.noteitem .del{position:absolute;right:10px;top:10px;font-size:15px;opacity:.5;cursor:pointer;padding:2px 6px}
+.gamesGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.gamecard{border-radius:18px;padding:14px;background:rgba(128,128,128,.12);cursor:pointer;transition:transform .15s}
+.gamecard:active{transform:scale(.96)}
+.gamecard .gi{font-size:26px}
+.gamecard .gn{font-size:13.5px;font-weight:800;margin-top:7px}
+.gamecard .gd{font-size:10.5px;opacity:.6;margin-top:3px}
+#gameStage{position:fixed;inset:0;z-index:99;background:rgba(10,14,28,.97);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:12px}
+#gameStage.on{display:flex}
+#gameStage .gtop{width:100%;display:flex;justify-content:space-between;align-items:center}
+#gBody{display:flex;flex-direction:column;align-items:center;gap:10px}
+.score{font-size:13px;opacity:.8}
+canvas{border-radius:14px;background:rgba(255,255,255,.06);touch-action:none}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;background:rgba(128,128,128,.16);color:inherit;font-family:inherit}
+.seg button.on{background:linear-gradient(135deg,#3B82F6,#8B5CF6);color:#fff}
+.list-item{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid rgba(128,128,128,.14);font-size:13.5px}
+.list-item:last-child{border-bottom:none}
+.list-item b{font-weight:800}
+/* 玻璃 Toast */
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);z-index:200;
+max-width:80%;padding:12px 20px;border-radius:16px;font-size:13.5px;font-weight:600;text-align:center;
+background:rgba(30,40,70,.9);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+border:1px solid rgba(255,255,255,.16);box-shadow:0 10px 30px rgba(0,0,0,.4);
+opacity:0;pointer-events:none;transition:all .28s cubic-bezier(.4,1.4,.6,1)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+body[data-theme="anime"] #toast{background:rgba(255,255,255,.96);color:#7C5AA6;border:2px solid #FFD8EC}
+</style>
+</head>
+<body data-theme="glass">
+
+<div id="animeBg"></div>
+
+<div id="app">
+<div id="pageHost">
+
+<!-- ========== 页面 1：天气 ========== -->
+<div id="p-weather" class="page on">
+<h2>🌤 天气</h2>
+<div class="card" id="wxNow">加载中…</div>
+<div class="card">
+<h3 style="margin-top:0">📍 定位信息</h3>
+<div class="loc" id="locBox">正在获取位置…</div>
+</div>
+<div class="card">
+<h3 style="margin-top:0">🕐 今日逐时</h3>
+<div class="hourScr" id="hourBox"></div>
+</div>
+<div class="card" id="tipCard" style="display:none"></div>
+<div class="card">
+<h3 style="margin-top:0">📅 未来天气趋势</h3>
+<div class="trend" id="trendBox"></div>
+</div>
+</div>
+
+<!-- ========== 页面 2：记事本 ========== -->
+<div id="p-notes" class="page">
+<h2>📝 记事本</h2>
+<div class="card">
+<input id="noteTitle" placeholder="标题…">
+<div style="height:8px"></div>
+<textarea id="noteBody" placeholder="写点什么…"></textarea>
+<div style="height:10px"></div>
+<button class="btn" onclick="addNote()">保存这条</button>
+</div>
+<div class="card">
+<h3 style="margin-top:0">全部记录（<span id="noteCount">0</span>）</h3>
+<div id="noteList"></div>
+</div>
+</div>
+
+<!-- ========== 页面 3：游戏 ========== -->
+<div id="p-games" class="page">
+<h2>🎮 游戏厅</h2>
+<div class="gamesGrid" id="gamesGrid"></div>
+</div>
+
+<!-- ========== 页面 4：账号 ========== -->
+<div id="p-account" class="page">
+<h2>👤 我的账号</h2>
+<div class="card" style="text-align:center">
+<div id="avatar" style="font-size:52px">🐣</div>
+<div id="accName" style="font-size:19px;font-weight:900;margin-top:6px">未登录</div>
+<div id="accSign" style="font-size:12.5px;opacity:.7;margin-top:5px">这个人很懒，什么都没写</div>
+<div style="height:14px"></div>
+<div id="expBarWrap" style="height:9px;border-radius:6px;background:rgba(128,128,128,.2);overflow:hidden">
+<div id="expBar" style="height:100%;width:0%;background:linear-gradient(90deg,#3B82F6,#8B5CF6);transition:width .5s"></div>
+</div>
+<div id="expTxt" style="font-size:11px;opacity:.65;margin-top:6px">Lv.0 · 经验 0</div>
+</div>
+<div class="card">
+<div class="list-item"><span>昵称</span><b id="infoNick">—</b></div>
+<div class="list-item"><span>签名</span><b id="infoSign">—</b></div>
+<div class="list-item"><span>等级</span><b id="infoLv">—</b></div>
+<div class="list-item"><span>经验值</span><b id="infoExp">—</b></div>
+<div class="list-item"><span>数据存储</span><b>仅本机</b></div>
+<div class="list-item"><span>软件版本</span><b>V3</b></div>
+</div>
+<div class="card" id="loginCard">
+<h3 style="margin-top:0">一键登录（本地）</h3>
+<input id="loginNick" placeholder="输入昵称…">
+<div style="height:8px"></div>
+<input id="loginSign" placeholder="输入个性签名…">
+<div style="height:10px"></div>
+<button class="btn" onclick="doLogin()">一键登录</button>
+<div style="height:8px"></div>
+<button class="btn ghost" onclick="logout()">退出登录</button>
+</div>
+</div>
+
+<!-- ========== 页面 5：设置 ========== -->
+<div id="p-set" class="page">
+<h2>⚙️ 设置</h2>
+<div class="card">
+<h3 style="margin-top:0">主页风格</h3>
+<div class="seg" id="themeSeg">
+<button data-t="glass" onclick="setTheme('glass')">iOS 玻璃</button>
+<button data-t="dark" onclick="setTheme('dark')">简约黑</button>
+<button data-t="anime" onclick="setTheme('anime')">动漫风</button>
+</div>
+</div>
+<div class="card">
+<h3 style="margin-top:0">字体风格</h3>
+<div class="seg" id="fontSeg">
+<button data-f="cn" onclick="setFont('cn')">中文</button>
+<button data-f="en" onclick="setFont('en')">English</button>
+<button data-f="fun" onclick="setFont('fun')">搞笑幽默</button>
+</div>
+<div style="font-size:11px;opacity:.6;margin-top:9px" id="fontHint">当前：中文（苹方）</div>
+</div>
+<div class="card">
+<h3 style="margin-top:0">关于软件</h3>
+<div class="list-item"><span>软件名</span><b>小光 V3</b></div>
+<div class="list-item"><span>作者</span><b>小光</b></div>
+<div class="list-item"><span>版本</span><b>3.0</b></div>
+<div class="list-item"><span>包名</span><b>com.auto.xiaoguang3</b></div>
+<div class="list-item"><span>内核</span><b>原生壳 + WebView</b></div>
+</div>
+<div class="card">
+<h3 style="margin-top:0">数据</h3>
+<button class="btn ghost" onclick="clearAll()">清空所有本地数据</button>
+</div>
+</div>
+
+</div><!-- /pageHost -->
+
+<div class="tabbar" id="tabbar">
+<div class="tab on" data-p="weather" onclick="go('weather')"><span class="ti">🌤</span><span>天气</span></div>
+<div class="tab" data-p="notes" onclick="go('notes')"><span class="ti">📝</span><span>记事</span></div>
+<div class="tab" data-p="games" onclick="go('games')"><span class="ti">🎮</span><span>游戏</span></div>
+<div class="tab" data-p="account" onclick="go('account')"><span class="ti">👤</span><span>账号</span></div>
+<div class="tab" data-p="set" onclick="go('set')"><span class="ti">⚙️</span><span>设置</span></div>
+</div>
+</div><!-- /app -->
+
+<div id="toast"></div>
+
+<div id="gameStage">
+<div class="gtop">
+<span id="gTitle" style="font-weight:800;font-size:15px"></span>
+<span onclick="closeGame()" style="cursor:pointer;font-size:15px;opacity:.8">✕ 关闭</span>
+</div>
+<div id="gBody"></div>
+</div><script>
+/* ==================== 通用工具 ==================== */
+var $ = function(id){ return document.getElementById(id); };
+var LS = {
+  get: function(k, d){ try{ var v = localStorage.getItem(k); return v===null?d:JSON.parse(v); }catch(e){ return d; } },
+  set: function(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+/* 玻璃 Toast：替代丑 alert */
+var _toastTimer = null;
+function toast(msg){
+  var t = $("toast");
+  if(!t) return;
+  t.textContent = msg;
+  t.classList.add("on");
+  if(_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(function(){ t.classList.remove("on"); }, 2200);
+}
+
+/* ==================== 页面切换 ==================== */
+function go(p){
+  var all = document.querySelectorAll(".page");
+  for(var i=0;i<all.length;i++){ all[i].classList.remove("on"); }
+  var t = $("p-" + p);
+  if(t){ t.classList.add("on"); t.scrollTop = 0; }
+  var tabs = document.querySelectorAll("#tabbar .tab");
+  for(var j=0;j<tabs.length;j++){
+    if(tabs[j].getAttribute("data-p") === p){ tabs[j].classList.add("on"); }
+    else{ tabs[j].classList.remove("on"); }
+  }
+}
+
+/* ==================== 主题 ==================== */
+function setTheme(t){
+  document.body.setAttribute("data-theme", t);
+  LS.set("xg3_theme", t);
+  var btns = document.querySelectorAll("#themeSeg button");
+  for(var i=0;i<btns.length;i++){
+    if(btns[i].getAttribute("data-t") === t){ btns[i].classList.add("on"); }
+    else{ btns[i].classList.remove("on"); }
+  }
+  toast("已切换到 " + ({glass:"iOS 玻璃风",dark:"简约黑",anime:"动漫风"}[t] || t));
+}
+
+/* ==================== 字体（真正生效） ==================== */
+var FONTS = {
+  cn:  {css:'"PingFang SC","Microsoft YaHei","Heiti SC",sans-serif', tag:"中文（苹方）"},
+  en:  {css:'"Times New Roman",Georgia,"Noto Serif","serif"', tag:"English（衬线）"},
+  fun: {css:'"Comic Sans MS","Chalkboard SE","Yuanti SC","STHupo","cursive"', tag:"搞笑幽默（卡通体）"}
+};
+function setFont(f){
+  var cfg = FONTS[f] || FONTS.cn;
+  document.body.style.fontFamily = cfg.css;
+  LS.set("xg3_font", f);
+  var btns = document.querySelectorAll("#fontSeg button");
+  for(var i=0;i<btns.length;i++){
+    if(btns[i].getAttribute("data-f") === f){ btns[i].classList.add("on"); }
+    else{ btns[i].classList.remove("on"); }
+  }
+  var hint = $("fontHint");
+  if(hint) hint.textContent = "当前：" + cfg.tag;
+}
+
+/* ==================== 动漫风背景（云朵/星星/角色） ==================== */
+function buildAnimeBg(){
+  var bg = $("animeBg");
+  if(!bg) return;
+  var clouds = ["☁️","☁️","🌥","☁️","🎈","🌈"];
+  var stars  = ["⭐","✨","💫","🌸","💖","🍭","🎀","⭐","✨","🌸"];
+  var chars  = ["🐰","🐱","🐻","🦄","🐧"];
+  var html = "";
+  for(var i=0;i<clouds.length;i++){
+    var top = 6 + i*13;
+    var dur = 26 + i*7;
+    var del = -(i*5);
+    html += '<div class="cloud" style="top:'+top+'%;animation-duration:'+dur+'s;animation-delay:'+del+'s">'+clouds[i]+'</div>';
+  }
+  for(var j=0;j<stars.length;j++){
+    var st = (j*11)%88 + 3;
+    var sl = (j*17)%90 + 3;
+    html += '<div class="star" style="top:'+st+'%;left:'+sl+'%;animation-delay:'+(j*0.4)+'s">'+stars[j]+'</div>';
+  }
+  for(var k=0;k<chars.length;k++){
+    var ct = 78 + k*4;
+    var cl = 8 + k*20;
+    html += '<div class="char" style="top:'+ct+'%;left:'+cl+'%;animation-delay:'+(k*0.6)+'s">'+chars[k]+'</div>';
+  }
+  bg.innerHTML = html;
+}
+</script><script>
+/* ==================== 天气图标映射（WMO code） ==================== */
+var WX = {
+  0:["☀️","晴"],1:["🌤","大致晴"],2:["⛅","局部多云"],3:["☁️","阴"],
+  45:["🌫","有雾"],48:["🌫","雾凇"],
+  51:["🌦","小毛毛雨"],53:["🌦","毛毛雨"],55:["🌧","大毛毛雨"],
+  56:["🌧","冻毛毛雨"],57:["🌧","强冻毛毛雨"],
+  61:["🌦","小雨"],63:["🌧","中雨"],65:["🌧","大雨"],
+  66:["🌧","冻雨"],67:["🌧","强冻雨"],
+  71:["🌨","小雪"],73:["🌨","中雪"],75:["❄️","大雪"],77:["❄️","雪粒"],
+  80:["🌦","阵雨"],81:["🌧","强阵雨"],82:["⛈","暴阵雨"],
+  85:["🌨","阵雪"],86:["❄️","强阵雪"],
+  95:["⛈","雷阵雨"],96:["⛈","雷暴伴冰雹"],99:["⛈","强雷暴冰雹"]
+};
+function wxInfo(code){ return WX[code] || ["🌡","未知"]; }
+
+/* ==================== 全局状态 ==================== */
+var GEO = { lat:null, lon:null, city:"定位中", ip:"", isp:"", src:"" };
+
+/* ---------- 定位方案 1：IP 定位（无需权限，秒出） ---------- */
+function locateByIP(cb){
+  fetch("http://ip-api.com/json/?lang=zh-CN", {cache:"no-store"})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d && d.status === "success"){
+        GEO.lat = d.lat; GEO.lon = d.lon;
+        GEO.city = (d.city || d.regionName || d.country);
+        GEO.ip = d.query; GEO.isp = d.isp || d.org || "";
+        GEO.src = "IP";
+        var box = $("locBox");
+        if(box){
+          box.innerHTML =
+            "🌐 <b>IP 定位</b><br>" +
+            "IP 地址：<b>" + GEO.ip + "</b><br>" +
+            "运营商：<b>" + GEO.isp + "</b><br>" +
+            "大致位置：<b>" + d.country + " · " + (d.regionName||"") + " · " + GEO.city + "</b><br>" +
+            "IP 坐标：<b>" + d.lat + "°, " + d.lon + "°</b>";
+        }
+        if(cb) cb(true);
+      } else { if(cb) cb(false); }
+    })
+    .catch(function(){ if(cb) cb(false); });
+}
+
+/* ---------- 定位方案 2：GPS 精确定位（需授权） ---------- */
+function locateByGPS(cb){
+  if(!navigator.geolocation){ if(cb) cb(false); return; }
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      var la = pos.coords.latitude, lo = pos.coords.longitude;
+      GEO.lat = la; GEO.lon = lo; GEO.src = "GPS";
+      // 逆地理编码：坐标 → 地名
+      fetch("https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=" + la +
+            "&longitude=" + lo + "&localityLanguage=zh", {cache:"no-store"})
+        .then(function(r){ return r.json(); })
+        .then(function(g){
+          var name = [g.countryName, g.principalSubdivision, g.city, g.locality]
+                     .filter(function(x){ return x && x.length; }).join(" · ");
+          var box = $("locBox");
+          if(box){
+            box.innerHTML =
+              "📡 <b>GPS 精确定位</b>（已授权）<br>" +
+              "位置：<b>" + (name || "未知") + "</b><br>" +
+              "GPS 坐标：<b>" + la.toFixed(5) + "°, " + lo.toFixed(5) + "°</b><br>" +
+              "精度：<b>约 " + Math.round(pos.coords.accuracy) + " 米</b><br>" +
+              (GEO.ip ? ("IP 地址：<b>" + GEO.ip + "</b><br>运营商：<b>" + GEO.isp + "</b>") : "");
+          }
+          if(cb) cb(true, name);
+        })
+        .catch(function(){
+          var box = $("locBox");
+          if(box){
+            box.innerHTML =
+              "📡 <b>GPS 精确定位</b>（已授权）<br>" +
+              "GPS 坐标：<b>" + la.toFixed(5) + "°, " + lo.toFixed(5) + "°</b><br>" +
+              "精度：<b>约 " + Math.round(pos.coords.accuracy) + " 米</b><br>" +
+              (GEO.ip ? ("IP 地址：<b>" + GEO.ip + "</b>") : "");
+          }
+          if(cb) cb(true, "");
+        });
+    },
+    function(err){ if(cb) cb(false); },
+    { enableHighAccuracy:true, timeout:9000, maximumAge:60000 }
+  );
+}
+
+/* ==================== 拉取真天气 ==================== */
+var WX_DATA = null;
+function loadWeather(){
+  if(GEO.lat === null){
+    var box = $("wxNow");
+    if(box) box.innerHTML = '<div style="text-align:center;padding:20px;font-size:13px;opacity:.7">正在定位…<br><span style="font-size:11px">若无网络请检查连接</span></div>';
+    return;
+  }
+  var url = "https://api.open-meteo.com/v1/forecast?latitude=" + GEO.lat +
+    "&longitude=" + GEO.lon +
+    "&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m,precipitation" +
+    "&hourly=temperature_2m,weather_code,precipitation_probability" +
+    "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+    "&timezone=auto&forecast_days=16";
+  fetch(url, {cache:"no-store"})
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      WX_DATA = d;
+      renderWeather(d);
+    })
+    .catch(function(){
+      var box = $("wxNow");
+      if(box) box.innerHTML = '<div style="text-align:center;padding:20px;font-size:13px;opacity:.8">⚠️ 天气获取失败<br><span style="font-size:11px;opacity:.6">请检查网络后下拉刷新</span></div>';
+    });
+}
+</script><script>
+/* ==================== 渲染天气（真数据） ==================== */
+function renderWeather(d){
+  if(!d || !d.current){ return; }
+  var c = d.current;
+  var info = wxInfo(c.weather_code);
+  var now = new Date();
+
+  // ---- 当前天气卡 ----
+  var box = $("wxNow");
+  if(box){
+    box.innerHTML =
+      '<div class="wxRow">' +
+        '<div>' +
+          '<div class="wxBig">' + Math.round(c.temperature_2m) + '°</div>' +
+          '<div style="font-size:13px;opacity:.78;margin-top:4px">' + info[1] + ' · 体感 ' + Math.round(c.apparent_temperature) + '°</div>' +
+          '<div style="font-size:11px;opacity:.6;margin-top:8px">📍 ' + GEO.city + ' · ' + p2(now.getHours()) + ':' + p2(now.getMinutes()) + '</div>' +
+        '</div>' +
+        '<div style="font-size:56px;line-height:1">' + info[0] + '</div>' +
+      '</div>' +
+      '<div class="grid3">' +
+        '<div class="mini"><div class="k">湿度</div><div class="v">' + c.relative_humidity_2m + '%</div></div>' +
+        '<div class="mini"><div class="k">风速</div><div class="v">' + Math.round(c.wind_speed_10m) + '<span style="font-size:10px">km/h</span></div></div>' +
+        '<div class="mini"><div class="k">降水</div><div class="v">' + (c.precipitation || 0) + '<span style="font-size:10px">mm</span></div></div>' +
+      '</div>';
+  }
+
+  // ---- 逐时（今天剩余 24 小时） ----
+  var hb = $("hourBox");
+  if(hb && d.hourly && d.hourly.time){
+    var h = "";
+    var startIdx = 0;
+    for(var i=0;i<d.hourly.time.length;i++){
+      var ht = new Date(d.hourly.time[i]);
+      if(ht >= now){ startIdx = i; break; }
+    }
+    for(var j=startIdx;j<Math.min(startIdx+24, d.hourly.time.length);j++){
+      var t = new Date(d.hourly.time[j]);
+      var w = wxInfo(d.hourly.weather_code[j]);
+      var pp = d.hourly.precipitation_probability ? d.hourly.precipitation_probability[j] : 0;
+      h += '<div class="hourItem">' +
+             '<div class="hh">' + p2(t.getHours()) + ':00</div>' +
+             '<div class="ii">' + w[0] + '</div>' +
+             '<div class="tt">' + Math.round(d.hourly.temperature_2m[j]) + '°</div>' +
+             '<div class="pp">💧' + (pp===null?0:pp) + '%</div>' +
+           '</div>';
+    }
+    hb.innerHTML = h || '<div style="opacity:.5;font-size:12px;padding:8px">暂无数据</div>';
+  }
+
+  // ---- 带伞建议 ----
+  var tip = $("tipCard");
+  if(tip && d.daily && d.daily.precipitation_probability_max){
+    var maxP = 0;
+    var dayN = Math.min(24, d.hourly ? d.hourly.precipitation_probability.length : 0);
+    if(d.hourly && d.hourly.precipitation_probability){
+      for(var k=startIdx;k<Math.min(startIdx+24, d.hourly.precipitation_probability.length);k++){
+        var v = d.hourly.precipitation_probability[k] || 0;
+        if(v > maxP) maxP = v;
+      }
+    }
+    var todayP = d.daily.precipitation_probability_max[0] || 0;
+    var lv, color, txt, sub;
+    if(maxP >= 60 || todayP >= 60){
+      lv="#3B82F6";
+      txt = "☂️ 强烈建议带伞";
+      sub = "今日最高降雨概率 " + Math.max(maxP, todayP) + "%，降水可能性很大，出门务必带伞。";
+    } else if(maxP >= 30 || todayP >= 30){
+      lv="#F59E0B";
+      txt = "🌂 建议带把伞";
+      sub = "今日降雨概率 " + Math.max(maxP, todayP) + "%，有可能下雨，带把折叠伞有备无患。";
+    } else {
+      lv="#10B981";
+      txt = "😎 不用带伞";
+      sub = "今日降雨概率仅 " + Math.max(maxP, todayP) + "%，天气不错，放心出门。";
+    }
+    tip.style.display = "block";
+    tip.className = "card tip";
+    tip.style.borderLeftColor = lv;
+    tip.innerHTML = '<div class="t1" style="color:' + lv + '">' + txt + '</div><div class="t2">' + sub + '</div>';
+  }
+
+  // ---- 未来趋势（16 天，Open-Meteo 免费上限） ----
+  var tb = $("trendBox");
+  if(tb && d.daily && d.daily.time){
+    var html = "";
+    var wd = ["日","一","二","三","四","五","六"];
+    for(var m=0;m<d.daily.time.length;m++){
+      var dt = new Date(d.daily.time[m]);
+      var dw = wxInfo(d.daily.weather_code[m]);
+      var label = m===0 ? "今天" : (m===1 ? "明天" : "周" + wd[dt.getDay()]);
+      var pp2 = d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[m] : 0;
+      html += '<div class="trendItem">' +
+                '<div class="dt">' + label + '</div>' +
+                '<div class="di">' + dw[0] + '</div>' +
+                '<div class="dmax">' + Math.round(d.daily.temperature_2m_max[m]) + '°</div>' +
+                '<div class="dmin">' + Math.round(d.daily.temperature_2m_min[m]) + '°</div>' +
+                '<div class="dp">💧' + (pp2===null?0:pp2) + '%</div>' +
+              '</div>';
+    }
+    tb.innerHTML = html;
+  }
+}
+</script><script>
+/* ==================== 小工具 ==================== */
+function p2(n){ return n<10 ? "0"+n : ""+n; }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ==================== 记事本 ==================== */
+function getNotes(){ return LS.get("xg3_notes", []); }
+function saveNotes(a){ LS.set("xg3_notes", a); }
+
+function addNote(){
+  var t = $("noteTitle").value.trim();
+  var c = $("noteBody").value.trim();
+  if(!t && !c){ toast("写点内容再保存吧~"); return; }
+  var arr = getNotes();
+  var d = new Date();
+  arr.unshift({
+    t: t || "无标题",
+    c: c,
+    d: d.getFullYear() + "-" + p2(d.getMonth()+1) + "-" + p2(d.getDate()) + " " + p2(d.getHours()) + ":" + p2(d.getMinutes())
+  });
+  saveNotes(arr);
+  $("noteTitle").value = "";
+  $("noteBody").value = "";
+  renderNotes();
+  toast("✅ 已保存（本地）");
+}
+
+function delNote(i){
+  var arr = getNotes();
+  arr.splice(i,1);
+  saveNotes(arr);
+  renderNotes();
+  toast("已删除");
+}
+
+function renderNotes(){
+  var arr = getNotes();
+  var box = $("noteList");
+  var cnt = $("noteCount");
+  if(cnt) cnt.textContent = arr.length;
+  if(!box) return;
+  if(arr.length === 0){
+    box.innerHTML = '<div style="font-size:12px;opacity:.55;text-align:center;padding:16px">还没有记事，上面写一条吧~</div>';
+    return;
+  }
+  var h = "";
+  for(var i=0;i<arr.length;i++){
+    var n = arr[i];
+    h += '<div class="noteitem">' +
+           '<div class="del" onclick="delNote(' + i + ')">✕</div>' +
+           '<div class="nt">' + esc(n.t) + '</div>' +
+           '<div class="nc">' + esc(n.c) + '</div>' +
+           '<div class="nd">' + esc(n.d) + '</div>' +
+         '</div>';
+  }
+  box.innerHTML = h;
+}
+
+/* ==================== 账号（纯本地） ==================== */
+function getAcc(){ return LS.get("xg3_acc", null); }
+
+function doLogin(){
+  var nick = $("loginNick").value.trim();
+  var sign = $("loginSign").value.trim();
+  if(!nick){ toast("请输入昵称再登录~"); return; }
+  var old = getAcc() || { exp:0 };
+  var a = {
+    nick: nick,
+    sign: sign || "这个人很懒，什么都没写",
+    exp: old.exp || 0,
+    time: new Date().toLocaleString("zh-CN")
+  };
+  LS.set("xg3_acc", a);
+  renderAcc();
+  toast("🎉 欢迎回来，" + nick + "！");
+}
+
+function logout(){
+  LS.set("xg3_acc", null);
+  renderAcc();
+  toast("已退出登录");
+}
+
+function addExp(n){
+  var a = getAcc();
+  if(!a) return;
+  a.exp = (a.exp || 0) + n;
+  LS.set("xg3_acc", a);
+  renderAcc();
+}
+
+function lvOf(exp){
+  return Math.floor(Math.sqrt((exp||0)/10));
+}
+function lvNeed(lv){
+  return Math.pow(lv+1,2) * 10;
+}
+
+function renderAcc(){
+  var a = getAcc();
+  var avatar = $("avatar"), name = $("accName"), sign = $("accSign");
+  var bar = $("expBar"), txt = $("expTxt");
+  var avatars = ["🐣","🐱","🐶","🦊","🐼","🐨","🦁","🐯","🐸","🦄"];
+
+  if(!a){
+    if(avatar) avatar.textContent = "🐣";
+    if(name) name.textContent = "未登录";
+    if(sign) sign.textContent = "这个人很懒，什么都没写";
+    if(bar) bar.style.width = "0%";
+    if(txt) txt.textContent = "Lv.0 · 经验 0";
+    setInfo("—","—","—","—");
+    return;
+  }
+  var lv = lvOf(a.exp);
+  var cur = lvNeed(lv-1 < 0 ? 0 : lv-1);
+  var next = lvNeed(lv);
+  var pct = Math.min(100, Math.round((a.exp - (lv>0?next-1:0)) / Math.max(1,next) * 100));
+  if(lv === 0) pct = Math.min(100, Math.round(a.exp / 10 * 100));
+
+  if(avatar) avatar.textContent = avatars[Math.min(lv, avatars.length-1)];
+  if(name) name.textContent = a.nick;
+  if(sign) sign.textContent = a.sign;
+  if(bar) bar.style.width = Math.max(3, pct) + "%";
+  if(txt) txt.textContent = "Lv." + lv + " · 经验 " + a.exp + " · 距离下一级还差 " + Math.max(0, next - a.exp);
+  setInfo(a.nick, a.sign, "Lv." + lv, String(a.exp));
+}
+
+function setInfo(nick, sign, lv, exp){
+  var e = $("infoNick"); if(e) e.textContent = nick;
+  var e2 = $("infoSign"); if(e2) e2.textContent = sign;
+  var e3 = $("infoLv"); if(e3) e3.textContent = lv;
+  var e4 = $("infoExp"); if(e4) e4.textContent = exp;
+}
+</script><script>
+/* ==================== 游戏框架 ==================== */
+var GAMES = [
+  {id:"snake",   ic:"🐍", n:"贪吃蛇",   d:"方向键或滑动"},
+  {id:"g2048",   ic:"🔢", n:"2048",     d:"滑动合并数字"},
+  {id:"breakout",ic:"🧱", n:"打砖块",   d:"滑动接球"},
+  {id:"mine",    ic:"💣", n:"扫雷",     d:"9×9 十个雷"},
+  {id:"memory",  ic:"🃏", n:"记忆翻牌", d:"找配对水果"},
+  {id:"gomoku",  ic:"⚫", n:"五子棋",   d:"11×11 人机"},
+  {id:"slide",   ic:"🧩", n:"数字华容道",d:"3×3 排顺序"},
+  {id:"tetris",  ic:"🎯", n:"俄罗斯方块",d:"左右滑动+点击转"}
+];
+var _afx = {};
+
+function renderGames(){
+  var g = $("gamesGrid");
+  if(!g) return;
+  var h = "";
+  for(var i=0;i<GAMES.length;i++){
+    var it = GAMES[i];
+    h += '<div class="gamecard" onclick="openGame(\'' + it.id + '\')">' +
+           '<div class="gi">' + it.ic + '</div>' +
+           '<div class="gn">' + it.n + '</div>' +
+           '<div class="gd">' + it.d + '</div>' +
+         '</div>';
+  }
+  g.innerHTML = h;
+}
+
+function getBest(id){ return LS.get("xg3_best_" + id, 0); }
+function setBest(id, v){
+  if(v > getBest(id)){ LS.set("xg3_best_" + id, v); return true; }
+  return false;
+}
+
+function stopAll(){
+  for(var k in _afx){
+    try{ if(_afx[k] && _afx[k].raf) cancelAnimationFrame(_afx[k].raf); }catch(e){}
+    try{ if(_afx[k] && _afx[k].iv) clearInterval(_afx[k].iv); }catch(e){}
+  }
+  _afx = {};
+}
+
+function openGame(id){
+  stopAll();
+  var g = null;
+  for(var i=0;i<GAMES.length;i++){ if(GAMES[i].id === id){ g = GAMES[i]; break; } }
+  if(!g) return;
+  $("gTitle").textContent = g.ic + " " + g.n;
+  $("gameStage").classList.add("on");
+  $("gBody").innerHTML = "";
+  try{
+    if(id === "snake")    startSnake();
+    else if(id === "g2048")    start2048();
+    else if(id === "breakout") startBreakout();
+    else if(id === "mine")     startMine();
+    else if(id === "memory")   startMemory();
+    else if(id === "gomoku")   startGomoku();
+    else if(id === "slide")    startSlide();
+    else if(id === "tetris")   startTetris();
+  }catch(e){
+    $("gBody").innerHTML = '<div style="padding:20px;opacity:.8">游戏出错：' + esc(e.message) + '</div>';
+  }
+  if(getAcc()) addExp(2);
+}
+
+function closeGame(){
+  stopAll();
+  $("gameStage").classList.remove("on");
+}
+</script><script>
+/* ==================== 1. 贪吃蛇 ==================== */
+function startSnake(){
+  var body = $("gBody");
+  body.innerHTML =
+    '<div class="score">得分 <span id="sScore">0</span> · 最高 <span id="sBest">' + getBest("snake") + '</span></div>' +
+    '<canvas id="sCv" width="300" height="300"></canvas>' +
+    '<div style="display:flex;gap:8px">' +
+      '<button class="btn ghost" style="width:60px;padding:10px" onclick="sTurn(-1,0)">←</button>' +
+      '<button class="btn ghost" style="width:60px;padding:10px" onclick="sTurn(0,-1)">↑</button>' +
+      '<button class="btn ghost" style="width:60px;padding:10px" onclick="sTurn(0,1)">↓</button>' +
+      '<button class="btn ghost" style="width:60px;padding:10px" onclick="sTurn(1,0)">→</button>' +
+    '</div>' +
+    '<button class="btn" style="width:130px;padding:10px" onclick="startSnake()">重开</button>';
+
+  var cv = $("sCv"), ctx = cv.getContext("2d");
+  var N = 15, S = 20;
+  var snake = [{x:7,y:7}], dir = {x:1,y:0}, food = {x:10,y:10}, score = 0, dead = false;
+
+  function placeFood(){
+    do{
+      food = {x:Math.floor(Math.random()*N), y:Math.floor(Math.random()*N)};
+    } while(snake.some(function(p){ return p.x===food.x && p.y===food.y; }));
+  }
+  placeFood();
+
+  window.sTurn = function(dx, dy){
+    if(dir.x === -dx && dir.y === -dy) return;
+    dir = {x:dx, y:dy};
+  };
+
+  function draw(){
+    ctx.clearRect(0,0,300,300);
+    ctx.fillStyle = "rgba(80,140,255,.9)";
+    snake.forEach(function(p,i){
+      ctx.fillStyle = i===0 ? "#7CB3FF" : "rgba(80,140,255,.7)";
+      ctx.fillRect(p.x*S+1, p.y*S+1, S-2, S-2);
+    });
+    ctx.fillStyle = "#FF6B8A";
+    ctx.beginPath();
+    ctx.arc(food.x*S+S/2, food.y*S+S/2, S/2-2, 0, Math.PI*2);
+    ctx.fill();
+    if(dead){
+      ctx.fillStyle = "rgba(0,0,0,.6)";
+      ctx.fillRect(0,130,300,40);
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("游戏结束 得分 " + score, 150, 156);
+    }
+  }
+
+  var iv = setInterval(function(){
+    if(dead) return;
+    var head = {x:snake[0].x + dir.x, y:snake[0].y + dir.y};
+    if(head.x < 0 || head.x >= N || head.y < 0 || head.y >= N ||
+       snake.some(function(p){ return p.x===head.x && p.y===head.y; })){
+      dead = true;
+      setBest("snake", score);
+      $("sBest").textContent = getBest("snake");
+      clearInterval(iv);
+      draw();
+      return;
+    }
+    snake.unshift(head);
+    if(head.x === food.x && head.y === food.y){
+      score += 10;
+      $("sScore").textContent = score;
+      placeFood();
+    } else {
+      snake.pop();
+    }
+    draw();
+  }, 130);
+  _afx.snake = {iv:iv};
+  draw();
+
+  // 滑动控制
+  var sx = 0, sy = 0;
+  cv.addEventListener("touchstart", function(e){
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  });
+  cv.addEventListener("touchend", function(e){
+    var dx = e.changedTouches[0].clientX - sx;
+    var dy = e.changedTouches[0].clientY - sy;
+    if(Math.abs(dx) > Math.abs(dy)){
+      window.sTurn(dx > 0 ? 1 : -1, 0);
+    } else {
+      window.sTurn(0, dy > 0 ? 1 : -1);
+    }
+  });
+}
+
+/* ==================== 2. 2048 ==================== */
+function start2048(){
+  var body = $("gBody");
+  body.innerHTML =
+    '<div class="score">得分 <span id="tScore">0</span> · 最高 <span id="tBest">' + getBest("g2048") + '</span></div>' +
+    '<div id="b2048" style="width:300px;height:300px;border-radius:14px;padding:8px;display:grid;grid-template-columns:repeat(4,1fr);grid-gap:8px;background:rgba(128,128,128,.16)"></div>' +
+    '<div style="display:flex;gap:8px">' +
+      '<button class="btn ghost" style="width:56px;padding:10px" onclick="m2(\'u\')">↑</button>' +
+      '<button class="btn ghost" style="width:56px;padding:10px" onclick="m2(\'l\')">←</button>' +
+      '<button class="btn ghost" style="width:56px;padding:10px" onclick="m2(\'d\')">↓</button>' +
+      '<button class="btn ghost" style="width:56px;padding:10px" onclick="m2(\'r\')">→</button>' +
+    '</div>' +
+    '<button class="btn" style="width:130px;padding:10px" onclick="start2048()">重开</button>';
+
+  var g = [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], score = 0;
+  var COLORS = {"2":"#EEE4DA","4":"#EDE0C8","8":"#F2B179","16":"#F59563","32":"#F67C5F","64":"#F65E3B",
+                "128":"#EDCF72","256":"#EDCC61","512":"#EDC850","1024":"#EDC53F","2048":"#EDC22E"};
+
+  function addTile(){
+    var empty = [];
+    for(var i=0;i<4;i++) for(var j=0;j<4;j++) if(g[i][j]===0) empty.push([i,j]);
+    if(!empty.length) return;
+    var p = empty[Math.floor(Math.random()*empty.length)];
+    g[p[0]][p[1]] = Math.random() < 0.9 ? 2 : 4;
+  }
+
+  function render(){
+    var box = $("b2048");
+    if(!box) return;
+    var h = "";
+    for(var i=0;i<4;i++){
+      for(var j=0;j<4;j++){
+        var v = g[i][j];
+        var bg = v ? (COLORS[String(v)] || "#3C3A32") : "rgba(128,128,128,.12)";
+        var col = v <= 4 ? "#776E65" : "#F9F6F2";
+        var fs = v >= 1000 ? 18 : (v >= 100 ? 22 : 26);
+        h += '<div style="border-radius:8px;display:flex;align-items:center;justify-content:center;' +
+             'background:' + bg + ';color:' + col + ';font-weight:900;font-size:' + fs + 'px">' +
+             (v || "") + '</div>';
+      }
+    }
+    box.innerHTML = h;
+    var sc = $("tScore"); if(sc) sc.textContent = score;
+  }
+
+  function merge(line){
+    var a = line.filter(function(x){ return x; });
+    var out = [];
+    for(var i=0;i<a.length;i++){
+      if(a[i] === a[i+1]){ out.push(a[i]*2); score += a[i]*2; i++; }
+      else out.push(a[i]);
+    }
+    while(out.length < 4) out.push(0);
+    return out;
+  }
+
+  window.m2 = function(d){
+    var before = JSON.stringify(g);
+    if(d === "l"){
+      for(var i=0;i<4;i++) g[i] = merge(g[i]);
+    } else if(d === "r"){
+      for(var i2=0;i2<4;i2++) g[i2] = merge(g[i2].slice().reverse()).reverse();
+    } else if(d === "u"){
+      for(var j=0;j<4;j++){
+        var col = [g[0][j],g[1][j],g[2][j],g[3][j]];
+        col = merge(col);
+        for(var k=0;k<4;k++) g[k][j] = col[k];
+      }
+    } else if(d === "d"){
+      for(var j2=0;j2<4;j2++){
+        var col2 = [g[3][j2],g[2][j2],g[1][j2],g[0][j2]];
+        col2 = merge(col2);
+        for(var k2=0;k2<4;k2++) g[3-k2][j2] = col2[k2];
+      }
+    }
+    if(JSON.stringify(g) !== before){
+      addTile();
+      render();
+      var mx = 0;
+      for(var a=0;a<4;a++) for(var b=0;b<4;b++) if(g[a][b] > mx) mx = g[a][b];
+      if(setBest("g2048", score)) $("tBest").textContent = getBest("g2048");
+    }
+  };
+
+  addTile(); addTile(); render();
+
+  var sx = 0, sy = 0;
+  var el = $("b2048");
+  el.addEventListener("touchstart", function(e){ sx = e.touches[0].clientX; sy = e.touches[0].clientY; });
+  el.addEventListener("touchend", function(e){
+    var dx = e.changedTouches[0].clientX - sx;
+    var dy = e.changedTouches[0].clientY - sy;
+    if(Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+    if(Math.abs(dx) > Math.abs(dy)) window.m2(dx > 0 ? "r" : "l");
+    else window.m2(dy > 0 ? "d" : "u");
+  });
+}
+</script><script>
+/* ==================== 3. 打砖块 ==================== */
+function startBreakout(){
+  var body = $("gBody");
+  body.innerHTML =
+    '<div class="score">得分 <span id="bScore">0</span> · 最高 <span id="bBest">' + getBest("breakout") + '</span></div>' +
+    '<canvas id="bCv" width="300" height="340"></canvas>' +
+    '<div style="font-size:11px;opacity:.6">左右滑动移动挡板</div>' +
+    '<button class="btn" style="width:130px;padding:10px" onclick="startBreakout()">重开</button>';
+
+  var cv = $("bCv"), ctx = cv.getContext("2d");
+  var W = 300, H = 340;
+  var paddle = {x:120, w:70, h:9};
+  var ball = {x:150, y:250, dx:2.4, dy:-2.6, r:6};
+  var bricks = [], score = 0, over = false;
+
+  for(var r=0;r<5;r++){
+    for(var c=0;c<8;c++){
+      bricks.push({
+        x: 8 + c*36, y: 22 + r*18, w: 32, h: 14,
+        on: true,
+        color: ["#FF6B8A","#FFA45B","#FFD95A","#6BE3A0","#6BB8FF"][r]
+      });
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = "#7CB3FF";
+    ctx.fillRect(paddle.x, H-30, paddle.w, paddle.h);
+    ctx.fillStyle = "#FFF";
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2);
+    ctx.fill();
+    bricks.forEach(function(b){
+      if(b.on){
+        ctx.fillStyle = b.color;
+        ctx.fillRect(b.x, b.y, b.w, b.h);
+      }
+    });
+    if(over){
+      ctx.fillStyle = "rgba(0,0,0,.6)";
+      ctx.fillRect(0,150,W,40);
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 16px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("游戏结束 得分 " + score, W/2, 176);
+    }
+    var sc = $("bScore"); if(sc) sc.textContent = score;
+  }
+
+  var raf;
+  function loop(){
+    if(over) return;
+    ball.x += ball.dx;
+    ball.y += ball.dy;
+    if(ball.x < ball.r){ ball.x = ball.r; ball.dx *= -1; }
+    if(ball.x > W-ball.r){ ball.x = W-ball.r; ball.dx *= -1; }
+    if(ball.y < ball.r){ ball.y = ball.r; ball.dy *= -1; }
+
+    if(ball.y > H-30 && ball.y < H-18 && ball.x > paddle.x && ball.x < paddle.x+paddle.w && ball.dy > 0){
+      ball.dy = -Math.abs(ball.dy);
+      ball.dx += ((ball.x - (paddle.x+paddle.w/2)) / (paddle.w/2)) * 1.6;
+      ball.dx = Math.max(-4, Math.min(4, ball.dx));
+    }
+    if(ball.y > H){ over = true; setBest("breakout", score); $("bBest").textContent = getBest("breakout"); draw(); return; }
+
+    for(var i=0;i<bricks.length;i++){
+      var b = bricks[i];
+      if(b.on && ball.x > b.x && ball.x < b.x+b.w && ball.y > b.y && ball.y < b.y+b.h){
+        b.on = false;
+        score += 5;
+        ball.dy *= -1;
+        break;
+      }
+    }
+    if(bricks.every(function(b){ return !b.on; })){ over = true; draw(); return; }
+
+    draw();
+    raf = requestAnimationFrame(loop);
+  }
+  _afx.breakout = {raf:raf};
+  loop();
+
+  var sw = false;
+  function move(e){
+    var rect = cv.getBoundingClientRect();
+    var cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    paddle.x = Math.max(0, Math.min(W-paddle.w, cx - paddle.w/2));
+  }
+  cv.addEventListener("touchstart", function(e){ sw = true; move(e); e.preventDefault(); }, {passive:false});
+  cv.addEventListener("touchmove", function(e){ if(sw){ move(e); e.preventDefault(); } }, {passive:false});
+  cv.addEventListener("touchend", function(){ sw = false; });
+  cv.addEventListener("mousemove", move);
+}
+
+/* ==================== 4. 扫雷 ==================== */
+function startMine(){
+  var body = $("gBody");
+  var R = 9, C = 9, MINES = 10;
+  var grid = [], revealed = [], flags = [], over = false, win = false;
+
+  for(var i=0;i<R;i++){
+    grid.push([]); revealed.push([]); flags.push([]);
+    for(var j=0;j<C;j++){ grid[i].push(0); revealed[i].push(false); flags[i].push(false); }
+  }
+  var placed = 0;
+  while(placed < MINES){
+    var a = Math.floor(Math.random()*R), b = Math.floor(Math.random()*C);
+    if(grid[a][b] !== -1){ grid[a][b] = -1; placed++; }
+  }
+  function cnt(a,b){
+    var n = 0;
+    for(var x=-1;x<=1;x++) for(var y=-1;y<=1;y++){
+      var nx = a+x, ny = b+y;
+      if(nx>=0 && nx<R && ny>=0 && ny<C && grid[nx][ny] === -1) n++;
+    }
+    return n;
+  }
+  function reveal(a,b){
+    if(a<0 || a>=R || b<0 || b>=C || revealed[a][b] || flags[a][b]) return;
+    revealed[a][b] = true;
+    if(grid[a][b] === 0){
+      for(var x=-1;x<=1;x++) for(var y=-1;y<=1;y++) reveal(a+x, b+y);
+    }
+  }
+
+  window.mineTap = function(a,b){
+    if(over || revealed[a][b]) return;
+    if(grid[a][b] === -1){ over = true; render(); return; }
+    reveal(a,b);
+    var done = true;
+    for(var i=0;i<R;i++) for(var j=0;j<C;j++){
+      if(grid[i][j] !== -1 && !revealed[i][j]) done = false;
+    }
+    if(done){ over = true; win = true; }
+    render();
+  };
+  window.mineFlag = function(a,b){
+    if(over || revealed[a][b]) return;
+    flags[a][b] = !flags[a][b];
+    render();
+  };
+
+  var NUM = ["","1","2","3","4","5","6","7","8"];
+  function render(){
+    var h = '<div style="display:grid;grid-template-columns:repeat(9,32px);gap:2px;justify-content:center">';
+    for(var i=0;i<R;i++){
+      for(var j=0;j<C;j++){
+        var bg = "rgba(128,128,128,.22)", tx = "", col = "#fff";
+        if(revealed[i][j]){
+          bg = "rgba(128,128,128,.1)";
+          if(grid[i][j] === -1){ tx = "💣"; }
+          else if(grid[i][j] > 0){ tx = NUM[grid[i][j]]; col = ["","#5AA9FF","#6BE3A0","#FF8A8A","#B388FF","#FFB74D","#4DD0E1","#F06292","#9E9E9E"][grid[i][j]]; }
+        } else if(flags[i][j]){ tx = "🚩"; }
+        if(over && grid[i][j] === -1 && !revealed[i][j]) tx = "💣";
+        h += '<div onclick="mineTap(' + i + ',' + j + ')" ' +
+             'style="width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;' +
+             'background:' + bg + ';color:' + col + ';font-weight:800;font-size:14px;cursor:pointer" ' +
+             'ontouchstart="var t;t=setTimeout(function(){mineFlag(' + i + ',' + j + ')},450);this._t=t" ' +
+             'ontouchend="clearTimeout(this._t)">' + tx + '</div>';
+      }
+    }
+    h += '</div>';
+    h += '<div class="score" style="margin-top:8px">' + (over ? (win ? "🎉 通关！" : "💥 踩雷了") : "点击翻开 · 长按插旗") + '</div>';
+    h += '<button class="btn" style="width:130px;padding:10px" onclick="startMine()">重开</button>';
+    body.innerHTML = h;
+  }
+  render();
+}
+
+/* ==================== 5. 记忆翻牌 ==================== */
+function startMemory(){
+  var body = $("gBody");
+  var ICONS = ["🍎","🍌","🍇","🍓","🍉","🍒","🍑","🥝"];
+  var deck = ICONS.concat(ICONS);
+  for(var i=deck.length-1;i>0;i--){
+    var j = Math.floor(Math.random()*(i+1));
+    var t = deck[i]; deck[i] = deck[j]; deck[j] = t;
+  }
+  var open = [], matched = [], lock = false, moves = 0;
+
+  window.mmTap = function(i){
+    if(lock || open.indexOf(i) >= 0 || matched[i]) return;
+    open.push(i);
+    render();
+    if(open.length === 2){
+      moves++;
+      lock = true;
+      setTimeout(function(){
+        if(deck[open[0]] === deck[open[1]]){
+          matched[open[0]] = true; matched[open[1]] = true;
+          open = []; lock = false;
+          render();
+          if(matched.filter(function(x){return x;}).length === deck.length){
+            setBest("memory", Math.max(1, 100 - moves*3));
+            if(getAcc()) addExp(5);
+          }
+        } else {
+          open = []; lock = false; render();
+        }
+      }, 620);
+    }
+  };
+
+  function render(){
+    var h = '<div class="score">步数 ' + moves + '</div>';
+    h += '<div style="display:grid;grid-template-columns:repeat(4,64px);gap:8px;justify-content:center">';
+    for(var i=0;i<deck.length;i++){
+      var show = open.indexOf(i) >= 0 || matched[i];
+      h += '<div onclick="mmTap(' + i + ')" style="width:64px;height:64px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;' +
+           'background:' + (show ? "rgba(255,255,255,.18)" : "linear-gradient(135deg,#3B82F6,#8B5CF6)") + '">' +
+           (show ? deck[i] : "") + '</div>';
+    }
+    h += '</div>';
+    h += '<button class="btn" style="width:130px;padding:10px" onclick="startMemory()">重开</button>';
+    body.innerHTML = h;
+  }
+  render();
+}
+</script><script>
+/* ==================== 6. 五子棋（人机） ==================== */
+function startGomoku(){
+  var body = $("gBody");
+  var N = 11;
+  var b = [];
+  for(var i=0;i<N;i++){ b.push([]); for(var j=0;j<N;j++) b[i].push(0); }
+  var over = false, msg = "你执黑先下";
+
+  function win(a,b2,p){
+    var dirs = [[1,0],[0,1],[1,1],[1,-1]];
+    for(var d=0;d<dirs.length;d++){
+      var n = 1;
+      for(var s=1;s<5;s++){
+        var x = a + dirs[d][0]*s, y = b2 + dirs[d][1]*s;
+        if(x<0||x>=N||y<0||y>=N||b[x][y]!==p) break;
+        n++;
+      }
+      for(var s2=1;s2<5;s2++){
+        var x2 = a - dirs[d][0]*s2, y2 = b2 - dirs[d][1]*s2;
+        if(x2<0||x2>=N||y2<0||y2>=N||b[x2][y2]!==p) break;
+        n++;
+      }
+      if(n >= 5) return true;
+    }
+    return false;
+  }
+
+  function ai(){
+    // 简单启发式：找最有价值的空位
+    var best = null, bestScore = -1;
+    for(var i=0;i<N;i++){
+      for(var j=0;j<N;j++){
+        if(b[i][j] !== 0) continue;
+        var sc = 0;
+        // 评估四方向
+        var dirs = [[1,0],[0,1],[1,1],[1,-1]];
+        for(var d=0;d<dirs.length;d++){
+          var mine = 0, other = 0;
+          for(var s=-4;s<=4;s++){
+            if(s === 0) continue;
+            var x = i + dirs[d][0]*s, y = j + dirs[d][1]*s;
+            if(x<0||x>=N||y<0||y>=N) continue;
+            if(b[x][y] === 2) mine++;
+            else if(b[x][y] === 1) other++;
+          }
+          sc += mine*mine*1.2 + other*other;
+        }
+        if(Math.abs(i-5) + Math.abs(j-5) < 3) sc += 2;
+        if(sc > bestScore){ bestScore = sc; best = [i,j]; }
+      }
+    }
+    return best;
+  }
+
+  window.gkTap = function(i,j){
+    if(over || b[i][j] !== 0) return;
+    b[i][j] = 1;
+    if(win(i,j,1)){ over = true; msg = "🎉 你赢了！"; render(); if(getAcc()) addExp(10); return; }
+    var p = ai();
+    if(p){
+      b[p[0]][p[1]] = 2;
+      if(win(p[0],p[1],2)){ over = true; msg = "💻 电脑赢了"; render(); return; }
+    }
+    render();
+  };
+
+  function render(){
+    var h = '<div class="score">' + msg + '</div>';
+    h += '<div style="display:grid;grid-template-columns:repeat(11,26px);gap:1px;justify-content:center;background:rgba(200,160,90,.35);padding:6px;border-radius:10px">';
+    for(var i=0;i<N;i++){
+      for(var j=0;j<N;j++){
+        var v = b[i][j];
+        var tx = v === 1 ? "●" : (v === 2 ? "○" : "");
+        var col = v === 1 ? "#1A1A1A" : "#E8452C";
+        h += '<div onclick="gkTap(' + i + ',' + j + ')" style="width:26px;height:26px;display:flex;align-items:center;justify-content:center;' +
+             'font-size:19px;cursor:pointer;color:' + col + ';line-height:1">' + tx + '</div>';
+      }
+    }
+    h += '</div>';
+    h += '<button class="btn" style="width:130px;padding:10px" onclick="startGomoku()">重开</button>';
+    body.innerHTML = h;
+  }
+  render();
+}
+
+/* ==================== 7. 数字华容道 ==================== */
+function startSlide(){
+  var body = $("gBody");
+  var arr = [];
+  for(var i=1;i<9;i++) arr.push(i);
+  arr.push(0);
+  for(var k=arr.length-1;k>0;k--){
+    var j = Math.floor(Math.random()*(k+1));
+    var t = arr[k]; arr[k] = arr[j]; arr[j] = t;
+  }
+  var moves = 0, over = false;
+
+  window.slTap = function(i){
+    if(over) return;
+    var z = arr.indexOf(0);
+    var sameRow = Math.floor(z/3) === Math.floor(i/3);
+    var sameCol = z%3 === i%3;
+    var near = (sameRow && Math.abs(z-i) === 1) || (sameCol && Math.abs(z-i) === 3);
+    if(!near) return;
+    arr[z] = arr[i]; arr[i] = 0;
+    moves++;
+    var done = true;
+    for(var x=0;x<8;x++) if(arr[x] !== x+1){ done = false; break; }
+    if(done){ over = true; if(getAcc()) addExp(8); }
+    render();
+  };
+
+  function render(){
+    var h = '<div class="score">步数 ' + moves + (over ? ' · 🎉 完成！' : '') + '</div>';
+    h += '<div style="display:grid;grid-template-columns:repeat(3,80px);gap:8px;justify-content:center">';
+    for(var i=0;i<9;i++){
+      var v = arr[i];
+      h += '<div onclick="slTap(' + i + ')" style="width:80px;height:80px;border-radius:14px;display:flex;align-items:center;justify-content:center;' +
+           'font-size:26px;font-weight:900;cursor:pointer;' +
+           'background:' + (v ? "linear-gradient(135deg,#3B82F6,#8B5CF6)" : "rgba(128,128,128,.12)") + ';' +
+           'color:' + (v ? "#fff" : "transparent") + '">' + (v || "") + '</div>';
+    }
+    h += '</div>';
+    h += '<button class="btn" style="width:130px;padding:10px" onclick="startSlide()">重开</button>';
+    body.innerHTML = h;
+  }
+  render();
+}
+
+/* ==================== 8. 俄罗斯方块 ==================== */
+function startTetris(){
+  var body = $("gBody");
+  var C = 10, R = 20, S = 16;
+  var SHAPES = [
+    [[1,1,1,1]],
+    [[1,1],[1,1]],
+    [[0,1,0],[1,1,1]],
+    [[0,1,1],[1,1,0]],
+    [[1,1,0],[0,1,1]],
+    [[1,0,0],[1,1,1]],
+    [[0,0,1],[1,1,1]]
+  ];
+  var COLORS = ["#4DD0E1","#FFD54F","#BA68C8","#81C784","#E57373","#64B5F6","#FFB74D"];
+  var grid = [], cur = null, score = 0, gx = 0, over = false;
+
+  function newGrid(){
+    grid = [];
+    for(var i=0;i<R;i++){ grid.push([]); for(var j=0;j<C;j++) grid[i].push(-1); }
+  }
+  newGrid();
+
+  function spawn(){
+    var idx = Math.floor(Math.random()*SHAPES.length);
+    cur = {shape:SHAPES[idx], color:idx, x:Math.floor((C-SHAPES[idx][0].length)/2), y:0};
+    if(hit(cur.x, cur.y, cur.shape)){ over = true; }
+  }
+
+  function hit(nx, ny, sh){
+    for(var i=0;i<sh.length;i++){
+      for(var j=0;j<sh[i].length;j++){
+        if(!sh[i][j]) continue;
+        var x = nx+j, y = ny+i;
+        if(x<0 || x>=C || y>=R) return true;
+        if(y>=0 && grid[y][x] >= 0) return true;
+      }
+    }
+    return false;
+  }
+
+  function lock(){
+    for(var i=0;i<cur.shape.length;i++){
+      for(var j=0;j<cur.shape[i].length;j++){
+        if(cur.shape[i][j]){
+          var y = cur.y+i;
+          if(y >= 0) grid[y][cur.x+j] = cur.color;
+        }
+      }
+    }
+    // 消行
+    var cleared = 0;
+    for(var r=R-1;r>=0;r--){
+      var full = true;
+      for(var c=0;c<C;c++) if(grid[r][c] < 0){ full = false; break; }
+      if(full){
+        grid.splice(r,1);
+        grid.unshift([]);
+        for(var c2=0;c2<C;c2++) grid[0].push(-1);
+        cleared++;
+        r++;
+      }
+    }
+    if(cleared){ score += cleared * 10; }
+    spawn();
+  }
+
+  window.tLeft = function(){ if(!over && !hit(cur.x-1, cur.y, cur.shape)) cur.x--; render(); };
+  window.tRight = function(){ if(!over && !hit(cur.x+1, cur.y, cur.shape)) cur.x++; render(); };
+  window.tDown = function(){ if(!over && !hit(cur.x, cur.y+1, cur.shape)){ cur.y++; } else { lock(); } render(); };
+  window.tRot = function(){
+    if(over) return;
+    var sh = cur.shape;
+    var rot = [];
+    for(var i=0;i<sh[0].length;i++){
+      rot.push([]);
+      for(var j=sh.length-1;j>=0;j--) rot[i].push(sh[j][i]);
+    }
+    if(!hit(cur.x, cur.y, rot)) cur.shape = rot;
+    render();
+  };
+
+  function render(){
+    var cv = $("tCv");
+    if(!cv) return;
+    var ctx = cv.getContext("2d");
+    ctx.clearRect(0,0,C*S,R*S);
+    for(var i=0;i<R;i++){
+      for(var j=0;j<C;j++){
+        if(grid[i][j] >= 0){
+          ctx.fillStyle = COLORS[grid[i][j]];
+          ctx.fillRect(j*S+1, i*S+1, S-2, S-2);
+        }
+      }
+    }
+    if(cur && !over){
+      ctx.fillStyle = COLORS[cur.color];
+      for(var a=0;a<cur.shape.length;a++){
+        for(var b2=0;b2<cur.shape[a].length;b2++){
+          if(cur.shape[a][b2] && cur.y+a >= 0){
+            ctx.fillRect((cur.x+b2)*S+1, (cur.y+a)*S+1, S-2, S-2);
+          }
+        }
+      }
+    }
+    if(over){
+      ctx.fillStyle = "rgba(0,0,0,.65)";
+      ctx.fillRect(0, R*S/2-24, C*S, 48);
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 15px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("游戏结束", C*S/2, R*S/2 + 6);
+      setBest("tetris", score);
+    }
+    var sc = $("tScore"); if(sc) sc.textContent = score;
+  }
+
+  body.innerHTML =
+    '<div class="score">得分 <span id="tScore2">0</span> · 最高 <span id="tBest2">' + getBest("tetris") + '</span></div>'.replace("tScore2","tScore") +
+    '<canvas id="tCv" width="' + (C*S) + '" height="' + (R*S) + '"></canvas>' +
+    '<div style="display:flex;gap:8px">' +
+      '<button class="btn ghost" style="width:60px;padding:10px" onclick="tLeft()">←</button>' +
+      '<button class="btn ghost" style="width:60px;padding:10px" onclick="tRot()">⟳</button>' +
+      '<button class="btn ghost" style="width:60px;padding:10px" onclick="tRight()">→</button>' +
+      '<button class="btn ghost" style="width:60px;padding:10px" onclick="tDown()">↓</button>' +
+    '</div>' +
+    '<button class="btn" style="width:130px;padding:10px" onclick="startTetris()">重开</button>';
+
+  spawn();
+  render();
+  var iv = setInterval(function(){
+    if(over){ clearInterval(iv); return; }
+    if(!hit(cur.x, cur.y+1, cur.shape)) cur.y++;
+    else lock();
+    render();
+  }, 620);
+  _afx.tetris = {iv:iv};
+}
+</script><script>
+/* ==================== 启动 ==================== */
+function boot(){
+  // 1. 恢复主题
+  var th = LS.get("xg3_theme", "glass");
+  document.body.setAttribute("data-theme", th);
+  var tb = document.querySelectorAll("#themeSeg button");
+  for(var i=0;i<tb.length;i++){
+    if(tb[i].getAttribute("data-t") === th) tb[i].classList.add("on");
+    else tb[i].classList.remove("on");
+  }
+
+  // 2. 恢复字体（真的恢复）
+  var fo = LS.get("xg3_font", "cn");
+  setFont(fo);
+
+  // 3. 动漫背景
+  buildAnimeBg();
+
+  // 4. 渲染各页
+  renderNotes();
+  renderAcc();
+  renderGames();
+
+  // 5. 定位 + 天气：先用 IP 秒出，再 GPS 精修
+  var wxBox = $("wxNow");
+  if(wxBox) wxBox.innerHTML = '<div style="text-align:center;padding:20px;font-size:13px;opacity:.7">🌐 正在通过 IP 定位…</div>';
+
+  locateByIP(function(ok){
+    if(ok){
+      loadWeather();
+      // IP 成功后再试 GPS（更精确）
+      locateByGPS(function(gpsOk){
+        if(gpsOk){ loadWeather(); }
+      });
+    } else {
+      // IP 失败，直接试 GPS
+      locateByGPS(function(gpsOk){
+        if(gpsOk){ loadWeather(); }
+        else {
+          var b = $("wxNow");
+          if(b) b.innerHTML = '<div style="text-align:center;padding:20px;font-size:13px;opacity:.8">⚠️ 定位失败<br><span style="font-size:11px;opacity:.6">请检查网络连接</span></div>';
+          var lb = $("locBox");
+          if(lb) lb.innerHTML = "定位失败，请检查网络或授予定位权限。";
+        }
+      });
+    }
+  });
+
+  // 6. 默认显示天气页
+  go("weather");
+
+  // 7. 定时刷新
+  setInterval(function(){ loadWeather(); }, 1800000);  // 30 分钟
+}
+
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", boot);
+} else {
+  boot();
+}
+</script>
+</body>
+</html>
