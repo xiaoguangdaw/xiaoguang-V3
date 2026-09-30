@@ -55,7 +55,8 @@ class MainActivity : AppCompatActivity() {
                 view: WebView?,
                 request: WebResourceRequest?
             ): WebResourceResponse? {
-                return assetLoader.shouldInterceptRequest(request?.url)
+                val url = request?.url ?: return null
+                return assetLoader.shouldInterceptRequest(url)
             }
         }
 
